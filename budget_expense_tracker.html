@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Budget Expense Tracker</title>
+
+  <!-- Tailwind + Font Awesome + Chart.js -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* ===== Global Styles ===== */
+    body { font-family: "Inter", sans-serif; }
+
+    .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+
+    /* Card Hover Effect */
+    .card-hover { transition: all 0.3s ease; }
+    .card-hover:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.12); }
+
+    /* Expense List Hover */
+    .expense-item { transition: all 0.3s ease; }
+    .expense-item:hover { background-color: #f8fafc; transform: scale(1.01); }
+
+    /* Category Dot */
+    .category-color { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+
+    /* Mobile Container */
+    .mobile-container { max-width: 480px; margin: 0 auto; height: 100vh; display: flex; flex-direction: column; }
+
+    /* Login & Register Screens */
+    .login-screen { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .login-card { background: white; border-radius: 20px; padding: 30px; width: 100%; max-width: 400px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); animation: fadeIn 0.6s ease; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* App Main Screen */
+    .app-content { display: none; height: 100vh; overflow: hidden; }
+
+    /* Floating Button */
+    .floating-button { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(102,126,234,0.4); z-index: 1000; transition: 0.3s ease; }
+    .floating-button:hover { transform: scale(1.1); }
+
+    /* Modal Animation */
+    .modal-enter { animation: modalShow 0.4s ease forwards; }
+    @keyframes modalShow { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  </style>
+</head>
+
+<body class="bg-gray-50">
+
+  <!-- ================= LOGIN SCREEN ================= -->
+  <div id="login-screen" class="login-screen">
+    <div class="login-card">
+      <div class="text-center mb-8">
+        <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="fas fa-wallet text-white text-3xl"></i>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">Budget Tracker</h1>
+        <p class="text-gray-600">Sign in to manage your expenses</p>
+      </div>
+
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+          <input type="text" id="username" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter your username">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+          <input type="password" id="password" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter your password">
+        </div>
+        <button type="submit" class="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-3 px-4 rounded-xl transition duration-200 shadow-lg">
+          <i class="fas fa-sign-in-alt mr-2"></i>Sign In
+        </button>
+      </form>
+
+      <div class="text-center mt-6">
+        <p class="text-gray-600">Don’t have an account?</p>
+        <button onclick="showRegister()" class="text-blue-500 hover:text-blue-700 font-semibold mt-2">Create Account</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= REGISTER SCREEN ================= -->
+  <div id="register-screen" class="login-screen hidden">
+    <div class="login-card">
+      <div class="text-center mb-8">
+        <div class="w-20 h-20 bg-gradient-to-r from-green-500 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="fas fa-user-plus text-white text-3xl"></i>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">Create Account</h1>
+        <p class="text-gray-600">Join Budget Tracker today</p>
+      </div>
+
+      <form id="register-form" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+          <input type="text" id="fullname" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter your full name">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+          <input type="text" id="new-username" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Choose a username">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+          <input type="password" id="new-password" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Create a password">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
+          <input type="password" id="confirm-password" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Confirm your password">
+        </div>
+        <div class="flex space-x-3">
+          <button type="button" onclick="showLogin()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-3 px-4 rounded-xl transition duration-200">Back</button>
+          <button type="submit" class="flex-1 bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white font-semibold py-3 px-4 rounded-xl transition duration-200 shadow-lg">
+            <i class="fas fa-user-plus mr-2"></i>Register
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MAIN APP ================= -->
+  <div id="app-content" class="app-content">
+    <div class="mobile-container">
+
+      <!-- Header -->
+      <header class="gradient-bg text-white shadow-lg">
+        <div class="px-4 py-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <h1 class="text-xl font-bold"><i class="fas fa-wallet mr-2"></i>Budget Tracker</h1>
+              <p class="text-blue-100 text-xs mt-1">Welcome, <span id="user-display-name">User</span></p>
+            </div>
+            <div class="text-right">
+              <div id="current-date" class="text-blue-100 text-xs"></div>
+              <div id="total-budget" class="text-lg font-semibold">₹0.00</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- ================= HOME PAGE ================= -->
+      <main id="home-page" class="flex-1 overflow-y-auto pb-24">
+        <div class="p-4 space-y-4">
+
+          <!-- Quick Actions -->
+          <div class="grid grid-cols-2 gap-3">
+            <!-- Add Expense -->
+            <div onclick="showAddExpense()" class="card-hover bg-white rounded-xl p-4 text-center shadow-sm cursor-pointer">
+              <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <i class="fas fa-plus text-blue-600 text-xl"></i>
+              </div>
+              <span class="text-sm font-medium text-gray-700">Add Expense</span>
+            </div>
+
+            <!-- This Month Summary -->
+            <div onclick="showMonthlySummary()" class="card-hover bg-white rounded-xl p-4 text-center shadow-sm cursor-pointer">
+              <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <i class="fas fa-chart-pie text-green-600 text-xl"></i>
+              </div>
+              <span class="text-sm font-medium text-gray-700">This Month</span>
+            </div>
+          </div>
+
+          <!-- Monthly Summary Modal -->
+          <div id="monthly-summary-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-xl shadow-lg w-11/12 max-w-md p-6">
+              <h2 class="text-lg font-bold mb-4 text-gray-800">Monthly Summary</h2>
+              <div id="monthly-summary-content" class="space-y-2 text-sm text-gray-700">
+                <!-- Filled dynamically from JS -->
+              </div>
+              <button onclick="closeMonthlySummary()" class="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg">Close</button>
+            </div>
+          </div>
+
+          <!-- Budget Summary -->
+          <div class="card-hover bg-white rounded-xl shadow-md p-4">
+            <h2 class="text-lg font-semibold text-gray-800 mb-3"><i class="fas fa-chart-pie mr-2 text-purple-500"></i>Budget Summary</h2>
+            <div class="space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="text-gray-600 text-sm">Total Budget:</span>
+                <span class="font-semibold text-green-600 text-sm" id="summary-total">₹0.00</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-gray-600 text-sm">Total Expenses:</span>
+                <span class="font-semibold text-red-600 text-sm" id="summary-expenses">₹0.00</span>
+              </div>
+              <div class="flex justify-between items-center border-t pt-2">
+                <span class="text-gray-800 font-medium text-sm">Remaining:</span>
+                <span class="font-bold text-blue-600 text-sm" id="summary-remaining">₹0.00</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Expenses -->
+          <div class="card-hover bg-white rounded-xl shadow-md p-4">
+            <div class="flex justify-between items-center mb-3">
+              <h2 class="text-lg font-semibold text-gray-800"><i class="fas fa-receipt mr-2 text-blue-500"></i>Recent Expenses</h2>
+              <button onclick="showAddExpense()" class="text-blue-500 hover:text-blue-700"><i class="fas fa-plus"></i></button>
+            </div>
+            <div id="expenses-list" class="space-y-2">
+              <div class="text-center py-6 text-gray-500">
+                <i class="fas fa-receipt text-2xl mb-2"></i>
+                <p class="text-sm">No expenses added yet</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- ================= REPORTS PAGE ================= -->
+      <main id="reports-page" class="hidden flex-1 overflow-y-auto pb-24">
+        <div class="p-4 space-y-4">
+          <h2 class="text-xl font-bold text-gray-800 mb-2"><i class="fas fa-chart-bar mr-2 text-indigo-500"></i>Reports</h2>
+
+          <!-- Range Controls -->
+          <div class="card-hover bg-white rounded-xl shadow-md p-4">
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">From</label>
+                <input id="report-start" type="date" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"/>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">To</label>
+                <input id="report-end" type="date" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"/>
+              </div>
+            </div>
+            <button onclick="applyReportRange()" class="mt-3 w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg">
+              <i class="fas fa-filter mr-2"></i>Apply
+            </button>
+            <p class="text-[11px] text-gray-500 mt-2">Tip: 25 Aug → 25 Sep jaise custom windows yaha set kar sakte ho.</p>
+          </div>
+
+          <!-- Monthly Totals Chart -->
+<div class="card-hover bg-white rounded-xl shadow-md p-4">
+  <div class="flex items-center justify-between mb-2">
+    <h3 class="text-lg font-semibold text-gray-800">
+      <i class="fas fa-chart-column mr-2 text-blue-500"></i>Monthly Totals
+    </h3>
+    <span id="reports-total" class="text-sm text-gray-600"></span>
+  </div>
+  <div class="w-full h-72">
+    <canvas id="monthly-chart"></canvas>
+  </div>
+</div>
+
+<!-- Category Breakdown Chart -->
+<div class="card-hover bg-white rounded-xl shadow-md p-4">
+  <h3 class="text-lg font-semibold text-gray-800 mb-2">
+    <i class="fas fa-chart-pie mr-2 text-green-500"></i>Category Breakdown
+  </h3>
+  <div class="w-full h-72">
+    <canvas id="category-chart"></canvas>
+  </div>
+</div>
+
+      </main>
+
+      <!-- ================= SETTINGS PAGE ================= -->
+      <main id="settings-page" class="hidden flex-1 overflow-y-auto pb-24">
+        <div class="p-4 space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-cog mr-2 text-blue-500"></i>Settings</h2>
+            <!-- Plus icon for monthly budget modal -->
+            <button onclick="openMonthlyBudgetModal()" class="text-blue-600 hover:text-blue-800">
+              <i class="fas fa-circle-plus text-2xl"></i>
+            </button>
+          </div>
+
+          <div class="card-hover bg-white rounded-xl shadow-md p-4 space-y-4">
+            <!-- Total Budget (fallback/current month) -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Total Budget (₹)</label>
+              <input id="input-total-budget" type="number" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500" />
+              <p class="text-[11px] text-gray-500 mt-1">Note: Agar monthly budget set hai to current month ke liye wahi use hoga.</p>
+            </div>
+
+            <!-- Custom Date Range -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Budget Range</label>
+              <div class="flex gap-2">
+                <input id="range-start" type="date" class="w-1/2 border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"/>
+                <input id="range-end" type="date" class="w-1/2 border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"/>
+              </div>
+              <p class="text-xs text-gray-500 mt-1">Select custom period to track expenses (e.g., 25 Aug – 25 Sep)</p>
+            </div>
+
+            <!-- Monthly Budgets list -->
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="font-semibold text-gray-800">Monthly Budgets</h3>
+                <button onclick="openMonthlyBudgetModal()" class="text-sm text-blue-600 hover:text-blue-800"><i class="fas fa-plus mr-1"></i>Add</button>
+              </div>
+              <div id="monthly-budgets-list" class="space-y-2 text-sm text-gray-700">
+                <!-- filled by JS -->
+              </div>
+            </div>
+
+            <!-- Save Button -->
+            <button onclick="saveSettings()" 
+              class="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 
+              text-white font-semibold py-2 px-4 rounded-lg transition duration-200 shadow-md">
+              <i class="fas fa-save mr-2"></i>Save Settings
+            </button>
+          </div>
+        </div>
+      </main>
+
+      <!-- Bottom Navigation -->
+      <nav class="bg-white border-t border-gray-200 fixed bottom-0 w-full">
+        <div class="max-w-[480px] mx-auto grid grid-cols-4 py-2">
+          <!-- Home -->
+          <button onclick="switchPage('home')" class="text-center text-blue-600">
+            <i class="fas fa-home text-lg"></i>
+            <span class="text-xs block">Home</span>
+          </button>
+
+          <!-- Reports -->
+          <button onclick="switchPage('reports')" class="text-center text-gray-500">
+            <i class="fas fa-chart-bar text-lg"></i>
+            <span class="text-xs block">Reports</span>
+          </button>
+
+          <!-- Settings -->
+          <button onclick="switchPage('settings')" class="text-center text-gray-500">
+            <i class="fas fa-cog text-lg"></i>
+            <span class="text-xs block">Settings</span>
+          </button>
+
+          <!-- Logout -->
+          <button onclick="logout()" class="text-center text-gray-500">
+            <i class="fas fa-sign-out-alt text-lg"></i>
+            <span class="text-xs block">Logout</span>
+          </button>
+        </div>
+      </nav>
+
+      <!-- Add Expense Modal -->
+      <div id="add-expense-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="modal-enter bg-white rounded-xl p-6 w-full max-w-md mx-4">
+          <h3 class="text-xl font-semibold mb-4">Add New Expense</h3>
+          <form id="expense-form" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <input type="text" id="description" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter expense description">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Amount (₹)</label>
+              <input type="number" id="amount" required min="0" step="0.01" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0.00">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+              <select id="category" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <option value="">Select Category</option>
+                <option value="food" data-color="#FF6B6B">Food & Dining</option>
+                <option value="transport" data-color="#4ECDC4">Transportation</option>
+                <option value="shopping" data-color="#45B7D1">Shopping</option>
+                <option value="entertainment" data-color="#96CEB4">Entertainment</option>
+                <option value="utilities" data-color="#FECA57">Utilities</option>
+                <option value="health" data-color="#FF9FF3">Healthcare</option>
+                <option value="other" data-color="#54A0FF">Other</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+              <input type="date" id="date" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <div class="flex space-x-3 pt-4">
+              <button type="button" onclick="closeAddExpenseModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-lg transition duration-200">Cancel</button>
+              <button type="submit" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">Add Expense</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Monthly Budget Modal -->
+      <div id="monthly-budget-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="modal-enter bg-white rounded-xl p-6 w-full max-w-md mx-4">
+          <h3 class="text-xl font-semibold mb-4">Add / Update Monthly Budget</h3>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Month</label>
+              <input id="mb-month" type="month" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Budget (₹)</label>
+              <input id="mb-amount" type="number" min="0" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500" placeholder="e.g. 30000">
+            </div>
+            <div class="flex gap-3 pt-2">
+              <button onclick="closeMonthlyBudgetModal()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 rounded-lg">Cancel</button>
+              <button onclick="saveMonthlyBudget()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= SCRIPT ================= -->
+  <script>
+    let currentUser = null;
+    let users = JSON.parse(localStorage.getItem('budget_users')) || [];
+    let expenses = [];
+    let budget = 50000;
+    let rangeStart = localStorage.getItem("rangeStart") || null;
+    let rangeEnd = localStorage.getItem("rangeEnd") || null;
+
+    // monthly budgets map like { "2025-08": 30000, "2025-09": 28000 }
+    let monthlyBudgets = {};
+
+    // Charts
+    let monthlyChart = null;
+    let categoryChart = null;
+
+    const loginScreen = document.getElementById('login-screen');
+    const registerScreen = document.getElementById('register-screen');
+    const appContent = document.getElementById('app-content');
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const expenseForm = document.getElementById('expense-form');
+    const expensesList = document.getElementById('expenses-list');
+    const addExpenseModal = document.getElementById('add-expense-modal');
+
+    document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-IN', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+
+    // Set today's date in the modal date picker when opened
+    function presetTodayInDate() {
+      const dateInput = document.getElementById('date');
+      if (dateInput) dateInput.valueAsDate = new Date();
+    }
+
+    // ===== Auth check =====
+    function checkAuth() {
+      const savedUser = localStorage.getItem('current_user');
+      if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        loadUserData();
+        showApp();
+      }
+    }
+
+    function showLogin() { loginScreen.classList.remove('hidden'); registerScreen.classList.add('hidden'); }
+    function showRegister() { loginScreen.classList.add('hidden'); registerScreen.classList.remove('hidden'); }
+    function showApp() { loginScreen.classList.add('hidden'); registerScreen.classList.add('hidden'); appContent.style.display = 'block'; initApp(); }
+
+    function showAddExpense() { addExpenseModal.classList.remove('hidden'); addExpenseModal.classList.add('flex'); presetTodayInDate(); }
+    function closeAddExpenseModal() { addExpenseModal.classList.add('hidden'); addExpenseModal.classList.remove('flex'); }
+
+    loginForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const user = users.find(u => u.username === username && u.password === password);
+      if (user) {
+        currentUser = user;
+        localStorage.setItem('current_user', JSON.stringify(user));
+        loadUserData();
+        showApp();
+      } else {
+        alert('Invalid username or password');
+      }
+    });
+
+    registerForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const fullname = document.getElementById('fullname').value.trim();
+      const username = document.getElementById('new-username').value.trim();
+      const password = document.getElementById('new-password').value;
+      const confirmPassword = document.getElementById('confirm-password').value;
+
+      if (password !== confirmPassword) { alert('Passwords do not match'); return; }
+      if (users.some(u => u.username === username)) { alert('Username already exists'); return; }
+
+      const newUser = { id: Date.now(), fullname, username, password, createdAt: new Date().toISOString() };
+      users.push(newUser);
+      localStorage.setItem('budget_users', JSON.stringify(users));
+      alert('Account created successfully! Please login.');
+      showLogin();
+    });
+
+    function logout() {
+      currentUser = null;
+      localStorage.removeItem('current_user');
+      appContent.style.display = 'none';
+      loginScreen.classList.remove('hidden');
+    }
+
+    // ====== Load/Save user data ======
+    function userKeyMonthlyBudgets() {
+      return `user_${currentUser.id}_monthly_budgets`;
+    }
+
+    function loadUserData() {
+      const userData = JSON.parse(localStorage.getItem(`user_${currentUser.id}_data`)) || {};
+      expenses = userData.expenses || [];
+      budget  = userData.budget || 50000;
+
+      // monthly budgets
+      monthlyBudgets = JSON.parse(localStorage.getItem(userKeyMonthlyBudgets())) || {};
+
+      document.getElementById('user-display-name').textContent = currentUser.fullname;
+    }
+
+    function saveUserData() {
+      const userData = { expenses, budget };
+      localStorage.setItem(`user_${currentUser.id}_data`, JSON.stringify(userData));
+      localStorage.setItem(userKeyMonthlyBudgets(), JSON.stringify(monthlyBudgets));
+    }
+
+    // ====== Init ======
+    function initApp() {
+      updateBudgetDisplay();
+      renderExpenses();
+      updateSummary();
+      // prepare reports default range
+      initReportsRange();
+      // render settings list
+      renderMonthlyBudgetsList();
+    }
+
+    function updateBudgetDisplay() {
+      // if monthly budget exists for current month, show that as total-budget
+      const now = new Date();
+      const key = monthKey(now);
+      const effective = monthlyBudgets[key] != null ? monthlyBudgets[key] : budget;
+      document.getElementById('total-budget').textContent = `₹${Number(effective).toLocaleString('en-IN')}`;
+    }
+
+    // ====== Expense add/delete/render ======
+    expenseForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const description = document.getElementById('description').value.trim();
+      const amount = parseFloat(document.getElementById('amount').value);
+      const category = document.getElementById('category').value;
+      const date = document.getElementById('date').value;
+
+      if (!description || isNaN(amount) || amount <= 0 || !category || !date) { alert('Please fill all fields correctly'); return; }
+
+      const newExpense = { id: Date.now(), description, amount, category, date, createdAt: new Date().toISOString() };
+      expenses.push(newExpense);
+      saveUserData();
+      renderExpenses();
+      updateSummary();
+
+      expenseForm.reset();
+      presetTodayInDate();
+      closeAddExpenseModal();
+
+      // Refresh reports if open
+      if (!document.getElementById('reports-page').classList.contains('hidden')) {
+        buildReports();
+      }
+    });
+
+    function renderExpenses() {
+      if (expenses.length === 0) {
+        expensesList.innerHTML = `<div class="text-center py-6 text-gray-500"><i class="fas fa-receipt text-2xl mb-2"></i><p class="text-sm">No expenses added yet</p></div>`;
+        return;
+      }
+      const sortedExpenses = [...expenses].sort((a, b) => new Date(b.date) - new Date(a.date));
+      const recentExpenses = sortedExpenses.slice(0, 5);
+      expensesList.innerHTML = recentExpenses.map(expense => `
+        <div class="expense-item bg-gray-50 rounded-lg p-3 border border-gray-200">
+          <div class="flex justify-between items-center">
+            <div class="flex-1">
+              <div class="flex items-center mb-1">
+                <span class="category-color" style="background-color: ${getCategoryColor(expense.category)}"></span>
+                <span class="text-xs font-semibold text-gray-600 uppercase">${getCategoryName(expense.category)}</span>
+              </div>
+              <h4 class="font-semibold text-gray-800 text-sm">${escapeHTML(expense.description)}</h4>
+              <p class="text-xs text-gray-600">${formatDate(expense.date)}</p>
+            </div>
+            <div class="text-right">
+              <div class="text-red-600 font-bold text-sm">₹${expense.amount.toLocaleString('en-IN')}</div>
+              <button onclick="deleteExpense(${expense.id})" class="text-red-500 hover:text-red-700 text-xs mt-1"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function deleteExpense(id) {
+      if (confirm('Are you sure you want to delete this expense?')) {
+        expenses = expenses.filter(e => e.id !== id);
+        saveUserData();
+        renderExpenses();
+        updateSummary();
+        if (!document.getElementById('reports-page').classList.contains('hidden')) {
+          buildReports();
+        }
+      }
+    }
+
+    // ====== Summary (Home) ======
+    function updateSummary() {
+      const filtered = filterByRange(expenses);
+      const totalExpenses = filtered.reduce((sum, e) => sum + e.amount, 0);
+
+      // pick budget to show: if selected range is a single month and monthlyBudget exists, use that
+      let displayBudget = budget;
+      const bKey = singleMonthKeyFromRange();
+      if (bKey && monthlyBudgets[bKey] != null) {
+        displayBudget = monthlyBudgets[bKey];
+      } else {
+        // if range not set -> use current month budget if available
+        if (!rangeStart && !rangeEnd) {
+          const ck = monthKey(new Date());
+          if (monthlyBudgets[ck] != null) displayBudget = monthlyBudgets[ck];
+        }
+      }
+
+      const remaining = displayBudget - totalExpenses;
+      document.getElementById('summary-total').textContent = `₹${Number(displayBudget).toLocaleString('en-IN')}`;
+      document.getElementById('summary-expenses').textContent = `₹${totalExpenses.toLocaleString('en-IN')}`;
+      document.getElementById('summary-remaining').textContent = `₹${remaining.toLocaleString('en-IN')}`;
+    }
+
+    function filterByRange(data) {
+      if (!rangeStart || !rangeEnd) return data;
+      const start = new Date(rangeStart), end = new Date(rangeEnd);
+      return data.filter(e => {
+        const d = new Date(e.date);
+        return d >= start && d <= end;
+      });
+    }
+
+    function getCategoryColor(category) {
+      const colors = {
+        food: '#FF6B6B', transport: '#4ECDC4', shopping: '#45B7D1',
+        entertainment: '#96CEB4', utilities: '#FECA57', health: '#FF9FF3', other: '#54A0FF'
+      };
+      return colors[category] || '#999999';
+    }
+
+    function getCategoryName(category) {
+      const names = {
+        food: 'Food', transport: 'Transport', shopping: 'Shopping',
+        entertainment: 'Entertainment', utilities: 'Utilities', health: 'Health', other: 'Other'
+      };
+      return names[category] || 'Unknown';
+    }
+
+    function formatDate(dateString) { return new Date(dateString).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }); }
+    function monthKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+    function escapeHTML(str) { return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+    // ===== SETTINGS PAGE FUNCTIONS =====
+    function switchPage(page) {
+      // hide all mains
+      document.querySelectorAll("#app-content main").forEach(p => p.classList.add("hidden"));
+
+      if (page === "home") {
+        document.getElementById("home-page").classList.remove("hidden");
+      }
+      if (page === "reports") {
+        document.getElementById("reports-page").classList.remove("hidden");
+        // ensure charts built
+        buildReports();
+      }
+      if (page === "settings") {
+        document.getElementById("settings-page").classList.remove("hidden");
+        document.getElementById("input-total-budget").value = budget;
+        document.getElementById("range-start").value = rangeStart || "";
+        document.getElementById("range-end").value = rangeEnd || "";
+        renderMonthlyBudgetsList();
+      }
+    }
+
+    function saveSettings() {
+      budget = parseFloat(document.getElementById("input-total-budget").value) || budget;
+      rangeStart = document.getElementById("range-start").value || null;
+      rangeEnd   = document.getElementById("range-end").value || null;
+
+      localStorage.setItem("budget", budget);
+      localStorage.setItem("rangeStart", rangeStart || "");
+      localStorage.setItem("rangeEnd", rangeEnd || "");
+
+      updateBudgetDisplay();
+      updateSummary();
+      alert("Settings saved!");
+      switchPage("home");
+    }
+
+    // Monthly budgets UI
+    function openMonthlyBudgetModal() {
+      // default month = current
+      const now = new Date();
+      document.getElementById('mb-month').value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+      document.getElementById('mb-amount').value = '';
+      document.getElementById('monthly-budget-modal').classList.remove('hidden');
+      document.getElementById('monthly-budget-modal').classList.add('flex');
+    }
+    function closeMonthlyBudgetModal() {
+      document.getElementById('monthly-budget-modal').classList.add('hidden');
+      document.getElementById('monthly-budget-modal').classList.remove('flex');
+    }
+    function saveMonthlyBudget() {
+      const m = document.getElementById('mb-month').value;   // "YYYY-MM"
+      const amt = parseFloat(document.getElementById('mb-amount').value);
+      if (!m || isNaN(amt) || amt < 0) { alert("Please provide valid month and amount"); return; }
+      monthlyBudgets[m] = amt;
+      saveUserData();
+      renderMonthlyBudgetsList();
+      updateBudgetDisplay();
+      updateSummary();
+      closeMonthlyBudgetModal();
+      alert("Monthly budget saved.");
+    }
+    function renderMonthlyBudgetsList() {
+      const list = document.getElementById("monthly-budgets-list");
+      const keys = Object.keys(monthlyBudgets).sort();
+      if (keys.length === 0) {
+        list.innerHTML = `<p class="text-gray-500">No monthly budgets set. Click <b>+</b> to add.</p>`;
+        return;
+      }
+      list.innerHTML = keys.map(k => {
+        const [y, m] = k.split('-');
+        const label = new Date(Number(y), Number(m)-1, 1).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
+        const v = Number(monthlyBudgets[k]).toLocaleString('en-IN');
+        return `
+          <div class="flex items-center justify-between bg-gray-50 rounded-lg border p-2">
+            <span>${label}</span>
+            <div class="flex items-center gap-3">
+              <span class="font-semibold">₹${v}</span>
+              <button class="text-red-500 hover:text-red-700 text-xs" onclick="deleteMonthlyBudget('${k}')"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    function deleteMonthlyBudget(k) {
+      if (confirm("Delete this monthly budget?")) {
+        delete monthlyBudgets[k];
+        saveUserData();
+        renderMonthlyBudgetsList();
+        updateBudgetDisplay();
+        updateSummary();
+      }
+    }
+
+    // ===== MONTHLY SUMMARY (Quick action) =====
+    function showMonthlySummary() {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth(), 25);   // 25th current month
+      const end = new Date(now.getFullYear(), now.getMonth() + 1, 25); // 25th next month
+
+      const filtered = expenses.filter(e => {
+        const d = new Date(e.date);
+        return d >= start && d < end;
+      });
+
+      if (filtered.length === 0) {
+        document.getElementById("monthly-summary-content").innerHTML =
+          `<p class="text-center text-gray-500">No expenses recorded for this month.</p>`;
+      } else {
+        let total = 0;
+        let categories = {};
+        filtered.forEach(e => {
+          total += e.amount;
+          categories[e.category] = (categories[e.category] || 0) + e.amount;
+        });
+
+        let html = `<p><b>Total:</b> ₹${total.toLocaleString('en-IN')}</p><hr class="my-2">`;
+        html += Object.keys(categories).map(cat => `
+          <p><span class="font-semibold">${getCategoryName(cat)}</span>: ₹${categories[cat].toLocaleString('en-IN')}</p>
+        `).join('');
+
+        document.getElementById("monthly-summary-content").innerHTML = html;
+      }
+
+      document.getElementById("monthly-summary-modal").classList.remove("hidden");
+    }
+    function closeMonthlySummary() {
+      document.getElementById("monthly-summary-modal").classList.add("hidden");
+    }
+
+    // ===== REPORTS =====
+    function initReportsRange() {
+      const startEl = document.getElementById('report-start');
+      const endEl = document.getElementById('report-end');
+
+      // default to current year (Jan 1 to Dec 31) if no custom
+      const now = new Date();
+      const y = now.getFullYear();
+      let s = rangeStart ? new Date(rangeStart) : new Date(y, 0, 1);
+      let e = rangeEnd ? new Date(rangeEnd) : new Date(y, 11, 31);
+
+      startEl.valueAsDate = s;
+      endEl.valueAsDate = e;
+    }
+
+    function applyReportRange() {
+      buildReports();
+    }
+
+    function buildReports() {
+      const startEl = document.getElementById('report-start');
+      const endEl = document.getElementById('report-end');
+      if (!startEl.value || !endEl.value) return;
+
+      const start = new Date(startEl.value);
+      const end = new Date(endEl.value);
+      if (start > end) { alert("Start should be before End"); return; }
+
+      const filtered = expenses.filter(e => {
+        const d = new Date(e.date);
+        return d >= start && d <= end;
+      });
+
+      const totalInReports = filtered.reduce((s, e) => s + e.amount, 0);
+      document.getElementById('reports-total').textContent = `Total: ₹${totalInReports.toLocaleString('en-IN')}`;
+
+      // Monthly grouping
+      const monthLabels = [];
+      const monthTotals = [];
+      const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
+      const endMonth = new Date(end.getFullYear(), end.getMonth(), 1);
+      while (cursor <= endMonth) {
+        const label = cursor.toLocaleDateString('en-IN', { month: 'short', year: '2-digit' });
+        const key = monthKey(cursor);
+        const sum = filtered
+          .filter(e => monthKey(new Date(e.date)) === key)
+          .reduce((s, e) => s + e.amount, 0);
+        monthLabels.push(label);
+        monthTotals.push(sum);
+        cursor.setMonth(cursor.getMonth() + 1);
+      }
+
+      // Category grouping
+      const cats = {};
+      filtered.forEach(e => { cats[e.category] = (cats[e.category] || 0) + e.amount; });
+      const catLabels = Object.keys(cats).map(c => getCategoryName(c));
+      const catValues = Object.keys(cats).map(c => cats[c]);
+
+      // Build/update charts
+      const mc = document.getElementById('monthly-chart').getContext('2d');
+      const cc = document.getElementById('category-chart').getContext('2d');
+
+      if (monthlyChart) monthlyChart.destroy();
+      if (categoryChart) categoryChart.destroy();
+
+      monthlyChart = new Chart(mc, {
+        type: 'bar',
+        data: {
+          labels: monthLabels,
+          datasets: [{
+            label: 'Expenses',
+            data: monthTotals
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true, ticks: { callback: v => '₹' + Number(v).toLocaleString('en-IN') } }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => '₹' + Number(ctx.parsed.y).toLocaleString('en-IN') } }
+          }
+        }
+      });
+
+      categoryChart = new Chart(cc, {
+        type: 'pie',
+        data: {
+          labels: catLabels,
+          datasets: [{ data: catValues }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            tooltip: { callbacks: { label: ctx => `${ctx.label}: ₹${Number(ctx.parsed).toLocaleString('en-IN')}` } }
+          }
+        }
+      });
+    }
+
+    function singleMonthKeyFromRange() {
+      if (!rangeStart || !rangeEnd) return null;
+      const s = new Date(rangeStart), e = new Date(rangeEnd);
+      if (s.getFullYear() === e.getFullYear() && s.getMonth() === e.getMonth()) {
+        return monthKey(s);
+      }
+      return null;
+    }
+
+    // Expose for HTML handlers
+    window.showLogin = showLogin;
+    window.showRegister = showRegister;
+    window.showAddExpense = showAddExpense;
+    window.closeAddExpenseModal = closeAddExpenseModal;
+    window.deleteExpense = deleteExpense;
+    window.logout = logout;
+    window.switchPage = switchPage;
+    window.saveSettings = saveSettings;
+    window.showMonthlySummary = showMonthlySummary;
+    window.closeMonthlySummary = closeMonthlySummary;
+    window.applyReportRange = applyReportRange;
+    window.openMonthlyBudgetModal = openMonthlyBudgetModal;
+    window.closeMonthlyBudgetModal = closeMonthlyBudgetModal;
+    window.saveMonthlyBudget = saveMonthlyBudget;
+    window.deleteMonthlyBudget = deleteMonthlyBudget;
+
+    // Start
+    checkAuth();
+  </script>
+</body>
+</html>
